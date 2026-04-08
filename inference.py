@@ -21,14 +21,24 @@ from utils.fft_utils import compute_fft_image
 _device: Optional[torch.device] = None
 _model: Optional[FusionModel] = None
 
+# ImageNet stats used during train/test preprocessing.
+_MEAN = [0.485, 0.456, 0.406]
+_STD = [0.229, 0.224, 0.225]
+
 # Same eval transform as DeepfakeDataset when split != "train"
 _eval_spatial_transform = transforms.Compose(
     [
         transforms.Resize((cfg.IMG_SIZE, cfg.IMG_SIZE)),
         transforms.ToTensor(),
+        transforms.Normalize(mean=_MEAN, std=_STD),
     ]
 )
-_to_tensor = transforms.ToTensor()
+_freq_transform = transforms.Compose(
+    [
+        transforms.ToTensor(),
+        transforms.Normalize(mean=_MEAN, std=_STD),
+    ]
+)
 
 # Image extensions supported by training pipeline; video handled via frame extract.
 _IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp"}
@@ -112,15 +122,19 @@ def preprocess_tensors(pil_rgb: Image.Image) -> Tuple[torch.Tensor, torch.Tensor
     """
     spatial = _eval_spatial_transform(pil_rgb)
     freq_img = compute_fft_image(pil_rgb, size=cfg.IMG_SIZE)
-    freq_tensor = _to_tensor(freq_img)
+    freq_tensor = _freq_transform(freq_img)
     return spatial, freq_tensor
 
 
-def predict_deepfake(filepath: str) -> Tuple[str, float]:
+def predict_deepfake(filepath: str, tta: bool = True) -> Tuple[str, float]:
     """
     Run binary deepfake prediction on an image file or video (middle frame).
 
     Prediction: sigmoid(logit) is P(fake). Label convention from training: 0=real, 1=fake.
+
+    Args:
+        filepath: Input image/video path.
+        tta: Kept for API compatibility with app.py. Currently not used.
 
     Returns:
         result: "real" or "fake"
