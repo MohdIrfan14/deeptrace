@@ -394,7 +394,7 @@ def _render_header() -> None:
     )
     a, b, c = st.columns(3)
     a.markdown('<div class="glass-card"><div class="mini-text">Model</div><b>Dual-Branch Fusion</b></div>', unsafe_allow_html=True)
-    b.markdown('<div class="glass-card"><div class="mini-text">Demo Accuracy</div><b>94.7%</b></div>', unsafe_allow_html=True)
+    b.markdown('<div class="glass-card"><div class="mini-text">Demo Accuracy</div><b>99.67%</b></div>', unsafe_allow_html=True)
     c.markdown('<div class="glass-card"><div class="mini-text">Processed Samples</div><b>10,000+</b></div>', unsafe_allow_html=True)
 
 
